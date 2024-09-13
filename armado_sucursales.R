@@ -545,5 +545,16 @@ sucursales <- sucursales %>%
 
 View(sucursales)
 
+# Comercios
+comercios <- read_delim("bases/comercios.csv", 
+                        delim = "|", escape_double = FALSE, trim_ws = TRUE)
+View(comercios)
 
-  
+# Uno sucursales con comercio
+sucursales_comercios = merge(sucursales, comercios, by.x = c("id_comercio", "id_bandera"), by.y = c("id_comercio", "id_bandera"))
+View(sucursales_comercios)
+
+# Me quedo únicamente con las sucursales de CABA
+sucursales_comercios = sucursales_comercios %>% filter(sucursales_provincia == "AR-C")
+
+#write.csv(sucursales_comercios, "sucursales_comercios.csv")
