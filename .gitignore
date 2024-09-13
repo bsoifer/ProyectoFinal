@@ -47,3 +47,8 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+customers_ar.csv
+items_ar.csv
+orders_ar.csv
+bases/
