@@ -8,6 +8,8 @@ library(readr)
 library(stringr)
 library(leaflet)
 library(geosphere)
+library(tidyr)
+library(jsonlite)
 
 # Bases de clientes, órdenes e items
 
@@ -162,3 +164,116 @@ tiendas_caba <- tiendas_caba %>%
     sucursales_comercios_4,
     1000
   ))
+
+# 10. Variable negocios_24hs_200m
+comercios_24hs <- sucursales_comercios %>%
+  filter(
+    sucursales_lunes_horario_atencion == "00:00 a 24:00" |
+      sucursales_martes_horario_atencion == "00:00 a 24:00" |
+      sucursales_miercoles_horario_atencion == "00:00 a 24:00" |
+      sucursales_jueves_horario_atencion == "00:00 a 24:00" |
+      sucursales_viernes_horario_atencion == "00:00 a 24:00" |
+      sucursales_sabado_horario_atencion == "00:00 a 24:00" |
+      sucursales_domingo_horario_atencion == "00:00 a 24:00"
+  )
+
+contar_negocios_24hs_cercanos <- function(lat, lon, comercios_24hs, distancia_radio) {
+  distancias <- distHaversine(
+    cbind(comercios_24hs$sucursales_longitud, comercios_24hs$sucursales_latitud), 
+    c(lon, lat)
+  )
+  count <- sum(distancias <= distancia_radio)
+  return(count)
+}
+
+tiendas_caba <- tiendas_caba %>%
+  rowwise() %>%
+  mutate(negocios_24hs_cercanos_1000m = contar_negocios_24hs_cercanos(
+    latitude,
+    longitude,
+    comercios_24hs,
+    1000
+  ))
+
+# 11. Negocios abiertos fin de semana
+comercios_fin_de_semana <- sucursales_comercios %>%
+  filter(
+      sucursales_sabado_horario_atencion != "Cerrado" &
+      sucursales_domingo_horario_atencion!= "Cerrado"
+  )
+
+tiendas_caba <- tiendas_caba %>%
+  rowwise() %>%
+  mutate(negocios_findesemana_200m = contar_negocios_24hs_cercanos(
+    latitude,
+    longitude,
+    comercios_fin_de_semana,
+    200
+  ))
+
+# 12 a 18 - Variables booleanas para cada dia de la semana
+
+## Función para extraer los días de apertura y el número de horarios
+extraer_info_horarios <- function(working_days_json) {
+  
+  working_days_list <- fromJSON(working_days_json)
+  weekdays <- working_days_list$weekdays
+  n_horarios <- length(working_days_list$hourRange)
+  
+  df <- data.frame(
+    mon_open = weekdays$mon,
+    tue_open = weekdays$tue,
+    wed_open = weekdays$wed,
+    thu_open = weekdays$thu,
+    fri_open = weekdays$fri,
+    sat_open = weekdays$sat,
+    sun_open = weekdays$sun,
+    n_horarios = n_horarios
+  )
+  
+  return(df)
+}
+
+## Aplico la función a la columna working_days, para cada tienda
+aux_customers <- customers_ar %>%
+  rowwise() %>%
+  mutate(info_horarios = list(extraer_info_horarios(working_days))) %>%
+  unnest_wider(info_horarios)
+
+aux_customers <- aux_customers %>%
+  select(id, mon_open, tue_open, wed_open, thu_open, fri_open, sat_open, sun_open, n_horarios)
+
+aux_customers = aux_customers %>% select(-n_horarios)
+aux_customers = aux_customers %>% filter(id %in% tiendas_caba$id)
+
+tiendas_caba = merge(tiendas_caba, aux_customers, by = "id")
+
+# Columna: supermercado_chino
+aux_2 <- customers_ar %>%
+  mutate(supermercado_chino = ifelse(
+    !is.na(additional_info) & str_detect(tolower(additional_info), "chino") |
+      !is.na(name) & str_detect(tolower(name), "chino"),
+    TRUE,
+    FALSE
+  )) %>%
+  select(id, supermercado_chino)
+
+aux_2 = aux_2 %>% filter(id %in% tiendas_caba$id)
+
+tiendas_caba = merge(tiendas_caba, aux_2, by = "id")
+
+# Columna: supermercado
+aux_3 <- customers_ar %>%
+  mutate(supermercado = ifelse(
+    !is.na(additional_info) & str_detect(tolower(additional_info), "super") |
+    !is.na(name) & str_detect(tolower(name), "super") |
+    !is.na(additional_info) & str_detect(tolower(additional_info), "súper") |
+    !is.na(name) & str_detect(tolower(name), "súper"),
+    TRUE,
+    FALSE
+  )) %>%
+  select(id, supermercado)
+
+aux_3 = aux_3 %>% filter(id %in% tiendas_caba$id)
+
+tiendas_caba = merge(tiendas_caba, aux_3, by = "id")
