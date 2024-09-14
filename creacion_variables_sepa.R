@@ -277,3 +277,6 @@ aux_3 <- customers_ar %>%
 aux_3 = aux_3 %>% filter(id %in% tiendas_caba$id)
 
 tiendas_caba = merge(tiendas_caba, aux_3, by = "id")
+
+############################################################
+#write.csv(tiendas_caba, "variables_nuevas_tiendas.csv", row.names = FALSE)
