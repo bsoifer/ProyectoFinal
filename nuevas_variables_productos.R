@@ -24,8 +24,8 @@ orders_ar <- read_csv("bases/orders_ar.csv")
 View(orders_ar)
 
 # Base con todas las variabes
-tiendas_caba_v2 <- read_csv("bases_modelo/tiendas_caba_v2.csv")
-View(tiendas_caba_v2)
+tiendas_caba_v3 <- read_csv("bases_modelo/tiendas_caba_v3.csv")
+View(tiendas_caba_v3)
 
 # Extraigo de cada tienda, los 5 productos que más compró
 pedidos_por_tienda = merge(items_ar, orders_ar, by = "order_id")
@@ -92,3 +92,6 @@ tiendas_caba_v3 = merge(tiendas_caba_v2, productos_tiendas, by = "id")
 tiendas_caba_v3 = tiendas_caba_v3 %>% select(-customer_id)
 
 #write.csv(tiendas_caba_v3, "tiendas_caba_v3.csv", row.names = F)
+
+tiendas_caba_v2 <- read_csv("bases_modelo/tiendas_caba_v2.csv")
+View(tiendas_caba_v2)
