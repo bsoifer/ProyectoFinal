@@ -5,18 +5,25 @@ library(readr)
 library(plotly)
 options(scipen = 999)
 
-items <- read_csv("items_ar.csv")
+#Lectura de bases
+items <- read_csv("bases/items_ar.csv")
 View(items)
 
-orders <- read_csv("orders_ar.csv")
+orders <- read_csv("bases/orders_ar.csv")
 View(orders)
 
-customers <- read_csv("customers_ar.csv")
+customers <- read_csv("bases/customers_ar.csv")
 View(customers)
 
-# Total de monto de pedido por cada customer
-pedidos =  orders %>% select(customer_id, total, created_at)
+tiendas_caba_v7 <- read_csv("bases_modelo/tiendas_caba_v7.csv")
+View(tiendas_caba_v7)
 
+tiendas_caba_m2 <- read_csv("bases_modelo/tiendas_caba_m2.csv")
+View(tiendas_caba_m2)
+
+# Total de monto de pedido por cada customer
+pedidos = orders %>% select(customer_id, total, created_at)
+pedidos = pedidos %>% filter(customer_id %in% tiendas_caba_v7$id)
 
 # Ajuste por inflación con la variacion del IPC
 ipc <- data.frame(
@@ -34,41 +41,19 @@ ipc$indice <- cumprod(1 + ipc$variacion)
 
 indice_final <- ipc$indice[ipc$fecha == as.Date("2024-08-01")]
 
+# Le coloco a cada pedido la fecha de inicio del mes correspondiente
 pedidos$created_at <- as.Date(as.POSIXct(pedidos$created_at))
 
 pedidos$mes_inicio <- as.Date(format(pedidos$created_at, "%Y-%m-01"))
 
 pedidos <- merge(pedidos, ipc, by.x = "mes_inicio", by.y = "fecha")
 
+#Creo la columna "adjusted total", que es el monto ajustado por inflación a valores de agosto 2024
 pedidos$adjusted_total <- pedidos$total * (indice_final / pedidos$indice)
 
-# Graficos
+# Agrupo: promedio de monto por pedido
 pedidos = pedidos %>% group_by(customer_id) %>% summarise(promedio_por_pedido = mean(adjusted_total)) 
-boxplot(pedidos$promedio_por_pedido)
 
-# Eliminando el outlier
-pedidos = pedidos %>% filter(promedio_por_pedido < 3000000)
-boxplot(pedidos$promedio_por_pedido, ylab="Promedio por Pedido")
-title(main="Monto promedio de pedido por tienda")
-
-q1 <- quantile(pedidos$promedio_por_pedido, 0.25)
-mediana <- median(pedidos$promedio_por_pedido)
-q3 <- quantile(pedidos$promedio_por_pedido, 0.75)
-iqr <- IQR(pedidos$promedio_por_pedido)
-
-abline(h=q1, col="red", lty=2)
-abline(h=mediana, col="blue", lty=2)
-abline(h=q3, col="green", lty=2)
-
-mtext(side=1, line=4, at=1, text=sprintf("Q1: %.2f", q1), cex=0.8)
-mtext(side=1, line=3, at=1, text=sprintf("Mediana: %.2f", mediana), cex=0.8, col="blue")
-mtext(side=1, line=2, at=1, text=sprintf("Q3: %.2f", q3), cex=0.8)
-mtext(side=1, line=1, at=1, text=sprintf("IQR: %.2f", iqr), cex=0.8)
-
-# Estimacion de ganancia por recomendación
-decil_1 = quantile(pedidos$promedio_por_pedido, 0.1)
-
-pedidos_2 = pedidos %>% filter(promedio_por_pedido < decil_1)
-pedidos_2$distancia_a_media = 183340.61 - pedidos_2$promedio_por_pedido
-mean(pedidos_2$distancia_a_media) * 463
-
+# Agrego el monto promedio a las tiendas de CABA, para el modelo 2
+tiendas_caba_m2 = merge(tiendas_caba_m2, pedidos, by = "customer_id")
+#write.csv(tiendas_caba_m2, "tiendas_caba_m2.csv", row.names = F)
