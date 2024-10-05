@@ -91,6 +91,3 @@ for(i in c(1:nrow(tiendas_fuera_diagonal))){
 
 #vecinos_mas_cercanos <- vecinos_mas_cercanos %>% filter(id != 0)
 #write.csv(vecinos_mas_cercanos, "vecinos_mas_cercanos.csv", row.names = F)
-################## pruebas
-
-calcular_distancia_tiendas(89889, 5876, pca_scores)
