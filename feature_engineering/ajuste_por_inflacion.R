@@ -15,15 +15,15 @@ View(orders)
 customers <- read_csv("bases/customers_ar.csv")
 View(customers)
 
-tiendas_caba_v7 <- read_csv("bases_modelo/tiendas_caba_v7.csv")
-View(tiendas_caba_v7)
+tiendas_caba_m1 <- read_csv("bases_modelo/tiendas_caba_m1.csv")
+View(tiendas_caba_m1)
 
 tiendas_caba_m2 <- read_csv("bases_modelo/tiendas_caba_m2.csv")
 View(tiendas_caba_m2)
 
 # Total de monto de pedido por cada customer
 pedidos = orders %>% select(customer_id, total, created_at)
-pedidos = pedidos %>% filter(customer_id %in% tiendas_caba_v7$id)
+pedidos = pedidos %>% filter(customer_id %in% tiendas_caba_m1$id)
 
 # Ajuste por inflación con la variacion del IPC
 ipc <- data.frame(
@@ -50,6 +50,7 @@ pedidos <- merge(pedidos, ipc, by.x = "mes_inicio", by.y = "fecha")
 
 #Creo la columna "adjusted total", que es el monto ajustado por inflación a valores de agosto 2024
 pedidos$adjusted_total <- pedidos$total * (indice_final / pedidos$indice)
+#write.csv(pedidos, "montos_ajustados_por_pedido.csv", row.names = F)
 
 # Agrupo: promedio de monto por pedido
 pedidos = pedidos %>% group_by(customer_id) %>% summarise(promedio_por_pedido = mean(adjusted_total)) 

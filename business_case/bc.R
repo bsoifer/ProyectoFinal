@@ -91,3 +91,55 @@ for(i in c(1:nrow(tiendas_fuera_diagonal))){
 
 #vecinos_mas_cercanos <- vecinos_mas_cercanos %>% filter(id != 0)
 #write.csv(vecinos_mas_cercanos, "vecinos_mas_cercanos.csv", row.names = F)
+
+# Paso 2: se calcula para cada tienda fuera de la diagonal, el promedio de la variable: "promedio por pedido" para cada uno de sus vecinos
+# También se calcula el promedio de distancia a sus vecinos más cercanos
+vecinos_mas_cercanos <- read_csv("business_case/vecinos_mas_cercanos.csv")
+View(vecinos_mas_cercanos)
+
+montos_promedio <- c()
+
+for(i in c(1:nrow(vecinos_mas_cercanos))){
+  print(i/nrow(vecinos_mas_cercanos))
+  monto_1 <- vecinos_mas_cercanos[[2]][i]
+  monto_2 <- vecinos_mas_cercanos[[3]][i]
+  monto_3 <- vecinos_mas_cercanos[[4]][i]
+  monto_4 <- vecinos_mas_cercanos[[5]][i]
+  monto_5 <- vecinos_mas_cercanos[[6]][i]
+  
+  monto_1 <- tiendas_caba_m2 %>% filter(customer_id == monto_1)
+  monto_1 <- monto_1[[8]][1]
+  monto_2 <- tiendas_caba_m2 %>% filter(customer_id == monto_2)
+  monto_2 <- monto_2[[8]][1]
+  monto_3 <- tiendas_caba_m2 %>% filter(customer_id == monto_3)
+  monto_3 <- monto_3[[8]][1]
+  monto_4 <- tiendas_caba_m2 %>% filter(customer_id == monto_4)
+  monto_4 <- monto_4[[8]][1]
+  monto_5 <- tiendas_caba_m2 %>% filter(customer_id == monto_5)
+  monto_5 <- monto_5[[8]][1]
+  
+  promedio_vecinos = (monto_1 + monto_2 + monto_3 + monto_4 + monto_5)/5
+  
+  montos_promedio <- c(montos_promedio, promedio_vecinos)
+}
+
+vecinos_mas_cercanos$monto_promedio <- montos_promedio
+
+distancias_promedio <- c()
+for(i in c(1:nrow(vecinos_mas_cercanos))){
+  dist <- c(vecinos_mas_cercanos[[7]][i], vecinos_mas_cercanos[[8]][i], vecinos_mas_cercanos[[9]][i], vecinos_mas_cercanos[[10]][i], vecinos_mas_cercanos[[11]][i])
+  dist <- mean(dist)
+  distancias_promedio <- c(distancias_promedio, dist)
+}
+
+vecinos_mas_cercanos$distancia_promedio <- distancias_promedio
+
+
+# Paso 3: se calculan las recomendaciones finales, solo para aquellos casos donde el monto total de la tienda esta por debajo del promedio de sus vecinos
+recomendaciones <- vecinos_mas_cercanos %>% merge(tiendas_caba_m2, by.x = "id", by.y = "customer_id")
+
+recomendaciones <- recomendaciones %>% filter(promedio_por_pedido < monto_promedio)
+
+recomendaciones$ganancia = recomendaciones$monto_promedio - recomendaciones$promedio_por_pedido
+
+sum(recomendaciones$ganancia)
