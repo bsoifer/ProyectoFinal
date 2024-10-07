@@ -103,7 +103,7 @@ for(i in c(1:nrow(tiendas_fuera_diagonal))){
 }
 
 vecinos_mas_cercanos <- vecinos_mas_cercanos %>% filter(id != 0)
-write.csv(vecinos_mas_cercanos, "vecinos_mas_cercanos.csv", row.names = F)
+#write.csv(vecinos_mas_cercanos, "vecinos_mas_cercanos.csv", row.names = F)
 
 # Paso 2: se calcula para cada tienda fuera de la diagonal, el promedio de la variable: "promedio por pedido" para cada uno de sus vecinos
 # También se calcula el promedio de distancia a sus vecinos más cercanos
@@ -158,3 +158,6 @@ recomendaciones <- recomendaciones %>% filter(promedio_por_pedido < monto_promed
 recomendaciones$ganancia = recomendaciones$monto_promedio - recomendaciones$promedio_por_pedido
 
 sum(recomendaciones$ganancia)
+
+recomendaciones %>% merge(resultado_m1_m2, by.x = "id", by.y = "customer_id" ) %>% select(id, distancia_promedio, ganancia, cluster) %>% 
+  group_by(cluster) %>% summarise("promedio_por_cluster" = mean(ganancia), cantidad = n()) %>% View()

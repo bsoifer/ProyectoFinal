@@ -62,6 +62,6 @@ ggplot(df_codo, aes(x = k, y = promedio_general)) +
   geom_line(color = "black", size = 1) +
   geom_point(color = "red", size = 2) +
   labs(title = "Elbow Method: Promedio de Distancias",
-       x = "Cantidad de tiendas",
+       x = "Cantidad de tiendas vecinas",
        y = "Promedio General de Distancias") +
   theme_minimal()
