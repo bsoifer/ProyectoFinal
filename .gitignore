@@ -54,3 +54,5 @@ orders_ar.csv
 bases/
 bases_modelo/
 business_case/montos_ajustados_por_pedido.csv
+business_case/matriz_distancias
+business_case/matriz_distancias_tiendas.csv

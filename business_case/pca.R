@@ -41,20 +41,20 @@ df_tiendas_scaled <- bind_cols(df_tiendas_scaled[, columns_to_scale],
                                tiendas[, columns_to_exclude])
 
 # 5) Se realiza PCA
-pca_result <- prcomp(df_tiendas_scaled, scale. = TRUE)
+pca_result <- prcomp(df_tiendas_scaled, scale. = FALSE)
 
 # 6) Graficar la varianza explicada acumulada
 explained_variance <- cumsum(pca_result$sdev^2 / sum(pca_result$sdev^2))
-ggplot(data.frame(PC = 1:length(explained_variance), Variance = explained_variance), aes(x = PC, y = Variance)) +
+ggplotly(ggplot(data.frame(PC = 1:length(explained_variance), Variance = explained_variance), aes(x = PC, y = Variance)) +
   geom_line() +
   geom_point() +
-  labs(title = "Varianza explicada por los componentes principales", x = "Número de componentes", y = "Varianza explicada acumulada")
+  labs(title = "Varianza explicada por los componentes principales", x = "Número de componentes", y = "Varianza explicada acumulada"))
 
 # 7) Selecciono el número de componentes
-n_components <- 25 # Explican el 75% de la varianza aproximadamente
+n_components <- 21 # Explican el 80% de la varianza aproximadamente
 
 # 8) Aplico PCA con el número de componentes seleccionado
-pca_result_n <- prcomp(df_tiendas_scaled, scale. = TRUE, rank. = n_components)
+pca_result_n <- prcomp(df_tiendas_scaled, scale. = FALSE, rank. = n_components)
 
 # 9) Se extraen los valores transformados
 pca_transformed <- pca_result_n$x
@@ -69,25 +69,37 @@ pca_transformed_scaled <- sweep(pca_transformed, 2, explained_var_ratio_selected
 # 12) Crear un data frame para plotly con las primeras componentes y el cluster
 pca_plot_data <- as.data.frame(pca_transformed_scaled)
 pca_plot_data$cluster <- as.factor(clusters)
+pca_plot_data$id <- ids
 
 # 13) Gráfico 2D interactivo con las primeras dos componentes
 plot_2d <- plot_ly(pca_plot_data, 
                    x = ~PC1, y = ~PC2, 
-                   color = ~cluster, colors = c('red', 'green', 'blue'),
-                   type = 'scatter', mode = 'markers') %>%
-  layout(title = 'Resultados PCA - Primeras dos componentes',
-         xaxis = list(title = 'PC1'),
-         yaxis = list(title = 'PC2'))
+                   color = ~cluster, colors = c('#FF69B4', "purple", '#1E90FF'),
+                   text = ~paste('ID:', id, 
+                                 '<br>Cluster:', cluster),
+                   type = 'scatter', mode = 'markers',
+                   marker = list(size = 8, opacity = 0.8)) %>%
+  layout(title = list(text = 'Resultados PCA - Primeras dos componentes', 
+                      font = list(size = 20)),
+         xaxis = list(title = 'PC1', titlefont = list(size = 14), tickfont = list(size = 12)),
+         yaxis = list(title = 'PC2', titlefont = list(size = 14), tickfont = list(size = 12)),
+         hovermode = 'closest')
+
 
 # 14) Gráfico 3D interactivo con las primeras tres componentes
 plot_3d <- plot_ly(pca_plot_data, 
                    x = ~PC1, y = ~PC2, z = ~PC3, 
-                   color = ~cluster, colors = c('red', 'green', 'blue'),
-                   type = 'scatter3d', mode = 'markers') %>%
-  layout(title = 'Resultados PCA - Primeras tres componentes',
-         scene = list(xaxis = list(title = 'PC1'),
-                      yaxis = list(title = 'PC2'),
-                      zaxis = list(title = 'PC3')))
+                   color = ~cluster, colors = c('#FF69B4', "purple", '#1E90FF'),
+                   text = ~paste('ID:', id, 
+                                 '<br>Cluster:', cluster),
+                   type = 'scatter3d', mode = 'markers',
+                   marker = list(size = 5, opacity = 0.8)) %>%
+  layout(title = list(text = 'Resultados PCA - Primeras tres componentes', 
+                      font = list(size = 20)),
+         scene = list(xaxis = list(title = 'PC1', titlefont = list(size = 14), tickfont = list(size = 12)),
+                      yaxis = list(title = 'PC2', titlefont = list(size = 14), tickfont = list(size = 12)),
+                      zaxis = list(title = 'PC3', titlefont = list(size = 14), tickfont = list(size = 12))),
+         hovermode = 'closest')
 
 # Mostrar ambos gráficos
 plot_2d
@@ -102,7 +114,7 @@ plot_3d
 pca_plot_data <- as.data.frame(pca_transformed_scaled)
 pca_plot_data <- pca_plot_data %>% cbind('id' = ids, "cluster" = clusters)
 pca_plot_data <- pca_plot_data %>% merge(resultado_m1_m2, by.x = "id", by.y = "customer_id")
-pca_plot_data <- pca_plot_data %>% select(-cantidad_ordenes, -promedio_ordenes_mes, -promedio_por_pedido, -cluster.y)
+pca_plot_data <- pca_plot_data %>% select(-cantidad_ordenes, -promedio_ordenes_mes, -promedio_por_pedido, -cluster.y, -cantidad_proveedores, -porcentaje_max_supplier, -porcentaje_descuento_total, -proporcion_ordenes_descuentos)
 pca_plot_data <- pca_plot_data %>% rename("cluster" = cluster.x)
 pca_plot_data$mismatch = case_when(
   pca_plot_data$cluster != pca_plot_data$predicted_cluster ~ T,
@@ -112,8 +124,8 @@ pca_plot_data$mismatch = case_when(
 # 2) Definir colores: 
 # Cluster 0 -> rojo, Cluster 1 -> verde, Cluster 2 -> azul, Mismatch -> naranja
 colors <- ifelse(pca_plot_data$mismatch, 'orange', 
-                 ifelse(pca_plot_data$cluster == 0, 'red',
-                        ifelse(pca_plot_data$cluster == 1, 'green', 'blue')))
+                 ifelse(pca_plot_data$cluster == 0, '#FF69B4',
+                        ifelse(pca_plot_data$cluster == 1, 'purple', '#1E90FF')))
 
 # 3) Gráfico 2D interactivo con las primeras dos componentes
 plot_2d.2 <- plot_ly(pca_plot_data, 
@@ -131,7 +143,7 @@ plot_3d.2 <- plot_ly(pca_plot_data,
                    marker = list(color = colors, size = 5),
                    text = ~paste('Customer ID:', id, '<br>Cluster:', cluster, '<br>Predicted Cluster:', predicted_cluster),
                    type = 'scatter3d', mode = 'markers') %>%
-  layout(title = 'Resultados PCA - Primeras dos componentes',
+  layout(title = 'Resultados PCA - Primeras tres componentes',
          scene = list(xaxis = list(title = 'PC1'),
                       yaxis = list(title = 'PC2'),
                       zaxis = list(title = 'PC3')))
