@@ -45,8 +45,7 @@ for (k in 1:20) {
     distancias <- distancias[distancias > 0]
     
     distancias_k_menores <- sort(distancias)[1:k]
-    
-    # Calculamos el promedio de las k distancias más pequeñas
+ 
     promedio_tienda <- mean(distancias_k_menores)
     
     promedios_por_tienda <- c(promedios_por_tienda, promedio_tienda)
