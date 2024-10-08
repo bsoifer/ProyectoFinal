@@ -159,5 +159,7 @@ recomendaciones$ganancia = recomendaciones$monto_promedio - recomendaciones$prom
 
 sum(recomendaciones$ganancia)
 
+#write.csv(recomendaciones, "recomendaciones.csv", row.names = F)
+
 recomendaciones %>% merge(resultado_m1_m2, by.x = "id", by.y = "customer_id" ) %>% select(id, distancia_promedio, ganancia, cluster) %>% 
   group_by(cluster) %>% summarise("promedio_por_cluster" = mean(ganancia), cantidad = n()) %>% View()
