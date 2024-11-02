@@ -8,14 +8,32 @@ library(scatterplot3d)
 options(scipen = 999)
 
 # Leo archivos
-resultado_m1_m2 <- read_csv("bases_modelo/resultado_m1_m2.csv")
+resultado_m1_m2 <- read_csv("bases_modelo/resultado_m1_m2_nuevo.csv")
 View(resultado_m1_m2)
 
-tiendas_caba_m2 <- read_csv("bases_modelo/tiendas_caba_m2.csv")
-View(tiendas_caba_m2)
+#tiendas_caba_m2 <- read_csv("bases_modelo/tiendas_caba_m2.csv")
+#View(tiendas_caba_m2)
 
-tiendas_caba_m1<- read_csv("bases_modelo/tiendas_caba_m1.csv")
+tiendas_caba_m1 <- read_csv("bases_modelo/tiendas_caba_m1_V2.csv")
 View(tiendas_caba_m1)
+
+# Tratamiento tiendas_caba_m1
+#new_cluster <- tiendas_caba_m1$cluster
+#new_cluster
+#for (i in c(1:length(new_cluster))) {
+#  if(new_cluster[i]==0){
+#    new_cluster[i] = 1
+#  }else if(new_cluster[i]==1){
+#      new_cluster[i] = 2
+#  }else{
+#    new_cluster[i] = 0
+#  }
+#}
+
+#tiendas_caba_m1 <- tiendas_caba_m1 %>% select(-cluster)
+#tiendas_caba_m1$cluster = new_cluster
+#tiendas_caba_m1 <- tiendas_caba_m1 %>% select(-mon_open, -tue_open, -wed_open, -thu_open, -fri_open, -sat_open, -sun_open)
+#write.csv(tiendas_caba_m1, "tiendas_caba_m1_v2.csv", row.names = F)
 
 # 1) Carga de dataset y guardo temporalmente las columna de cluster y id
 tiendas <- tiendas_caba_m1
@@ -24,8 +42,7 @@ ids <- tiendas$id
 tiendas <- tiendas %>% select(-cluster, -id)  
 
 # 2) Defino columnas que no voy a escalar
-columns_to_exclude <- c('mon_open', 'tue_open', 'wed_open', 'thu_open', 'fri_open',
-                        'sat_open', 'sun_open', 'supermercado_chino', 'supermercado',
+columns_to_exclude <- c('supermercado_chino', 'supermercado',
                         'en_avenida', 'producto_1_freq', 'producto_2_freq', 'producto_3_freq',
                         'producto_4_freq', 'producto_5_freq', 'categoria_1_freq', 'categoria_2_freq',
                         'categoria_3_freq', 'categoria_4_freq', 'categoria_5_freq', 'comuna_freq',
@@ -74,7 +91,7 @@ pca_plot_data$id <- ids
 # 13) Gráfico 2D interactivo con las primeras dos componentes
 plot_2d <- plot_ly(pca_plot_data, 
                    x = ~PC1, y = ~PC2, 
-                   color = ~cluster, colors = c('#FF69B4', "purple", '#1E90FF'),
+                   color = ~cluster, colors = c('orange', "blue", 'purple'),
                    text = ~paste('ID:', id, 
                                  '<br>Cluster:', cluster),
                    type = 'scatter', mode = 'markers',
@@ -89,7 +106,7 @@ plot_2d <- plot_ly(pca_plot_data,
 # 14) Gráfico 3D interactivo con las primeras tres componentes
 plot_3d <- plot_ly(pca_plot_data, 
                    x = ~PC1, y = ~PC2, z = ~PC3, 
-                   color = ~cluster, colors = c('#FF69B4', "purple", '#1E90FF'),
+                   color = ~cluster, colors = c('orange', "blue", 'purple'),
                    text = ~paste('ID:', id, 
                                  '<br>Cluster:', cluster),
                    type = 'scatter3d', mode = 'markers',
@@ -122,10 +139,10 @@ pca_plot_data$mismatch = case_when(
 )
 
 # 2) Definir colores: 
-# Cluster 0 -> rojo, Cluster 1 -> verde, Cluster 2 -> azul, Mismatch -> naranja
-colors <- ifelse(pca_plot_data$mismatch, 'orange', 
-                 ifelse(pca_plot_data$cluster == 0, '#FF69B4',
-                        ifelse(pca_plot_data$cluster == 1, 'purple', '#1E90FF')))
+# Cluster 0 -> orange, Cluster 1 -> blue, Cluster 2 -> purple, Mismatch -> red
+colors <- ifelse(pca_plot_data$mismatch, '', 
+                 ifelse(pca_plot_data$cluster == 0, 'orange',
+                        ifelse(pca_plot_data$cluster == 1, 'blue', 'purple')))
 
 # 3) Gráfico 2D interactivo con las primeras dos componentes
 plot_2d.2 <- plot_ly(pca_plot_data, 

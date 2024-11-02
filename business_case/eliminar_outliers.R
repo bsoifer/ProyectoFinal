@@ -11,7 +11,7 @@ options(scipen = 999)
 orders <- read_csv("bases/orders_ar.csv")
 View(orders)
 
-tiendas_caba_m1 <- read_csv("bases_modelo/tiendas_caba_m1.csv")
+tiendas_caba_m1 <- read_csv("bases_modelo/tiendas_caba_m1_v2.csv")
 View(tiendas_caba_m1)
 
 #2. Se seleccionan las tiendas que son objeto de estudio

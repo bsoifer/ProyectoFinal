@@ -8,13 +8,13 @@ options(scipen = 999)
 
 
 # Leo archivos
-resultado_m1_m2 <- read_csv("bases_modelo/resultado_m1_m2.csv")
+resultado_m1_m2 <- read_csv("bases_modelo/resultado_m1_m2_nuevo.csv")
 View(resultado_m1_m2)
 
 tiendas_caba_m2 <- read_csv("bases_modelo/tiendas_caba_m2.csv")
 View(tiendas_caba_m2)
 
-tiendas_caba_m1<- read_csv("bases_modelo/tiendas_caba_m1.csv")
+tiendas_caba_m1<- read_csv("bases_modelo/tiendas_caba_m1_v2.csv")
 View(tiendas_caba_m1)
 
 posibles_vecinos <- read_csv("business_case/posibles_vecinos.csv")
@@ -24,8 +24,7 @@ View(posibles_vecinos)
 # PCA - me quedo con las primeras 21 componentes principales, que explican aprox. el 80% de la varianza
 tiendas <- tiendas_caba_m1 %>% select(-cluster, -id)  
 ids <- tiendas_caba_m1 %>% select(id)
-columns_to_exclude <- c('mon_open', 'tue_open', 'wed_open', 'thu_open', 'fri_open',
-                        'sat_open', 'sun_open', 'supermercado_chino', 'supermercado',
+columns_to_exclude <- c('supermercado_chino', 'supermercado',
                         'en_avenida', 'producto_1_freq', 'producto_2_freq', 'producto_3_freq',
                         'producto_4_freq', 'producto_5_freq', 'categoria_1_freq', 'categoria_2_freq',
                         'categoria_3_freq', 'categoria_4_freq', 'categoria_5_freq', 'comuna_freq',
@@ -49,8 +48,8 @@ pca_transformed_scaled <- bind_cols(ids, as.data.frame(pca_transformed_scaled))
 conf_matrix <- confusionMatrix(factor(resultado_m1_m2$predicted_cluster), factor(resultado_m1_m2$cluster))
 print(conf_matrix)
 
-tiendas_fuera_diagonal <- resultado_m1_m2 %>% filter(cluster != predicted_cluster & cluster != 2)
-tiendas_diagonal <- resultado_m1_m2 %>% filter(cluster == predicted_cluster & predicted_cluster != 2)
+tiendas_fuera_diagonal <- resultado_m1_m2 %>% filter(cluster != predicted_cluster & cluster != 0)
+tiendas_diagonal <- resultado_m1_m2 %>% filter(cluster == predicted_cluster & predicted_cluster != 0)
 
 # Paso 1: se definen los n vecinos mas cercanos para cada tienda fuera de la diagonal
   ## Se tienen en cuenta únicamente las variables del primer modelo.
@@ -110,11 +109,11 @@ for(i in c(1:nrow(tiendas_fuera_diagonal))){
 }
 
 vecinos_mas_cercanos <- vecinos_mas_cercanos %>% filter(id != 0)
-#write.csv(vecinos_mas_cercanos, "vecinos_mas_cercanos_v2.csv", row.names = F)
+#write.csv(vecinos_mas_cercanos, "vecinos_mas_cercanos_v3.csv", row.names = F)
 
 # Paso 2: se calcula para cada tienda fuera de la diagonal, el promedio de la variable: "promedio por mes" para cada uno de sus vecinos
 # También se calcula el promedio de distancia a sus vecinos más cercanos
-vecinos_mas_cercanos <- read_csv("business_case/vecinos_mas_cercanos_v2.csv")
+vecinos_mas_cercanos <- read_csv("business_case/vecinos_mas_cercanos_v3.csv")
 View(vecinos_mas_cercanos)
 
 montos_promedio <- c()
@@ -164,7 +163,7 @@ recomendaciones$ganancia = recomendaciones$monto_promedio_vecinos - recomendacio
 
 sum(recomendaciones$ganancia)
 
-#write.csv(recomendaciones, "recomendaciones_v2.csv", row.names = F)
+#write.csv(recomendaciones, "recomendaciones_v3.csv", row.names = F)
 
 recomendaciones %>% merge(resultado_m1_m2, by.x = "id", by.y = "customer_id" ) %>% select(id, distancia_promedio, ganancia, cluster) %>% 
   group_by(cluster) %>% summarise("promedio_por_cluster" = mean(ganancia), cantidad = n()) %>% View()
