@@ -17,7 +17,7 @@ View(tiendas_caba_m2)
 tiendas_caba_m1<- read_csv("bases_modelo/tiendas_caba_m1_v2.csv")
 View(tiendas_caba_m1)
 
-posibles_vecinos <- read_csv("business_case/posibles_vecinos.csv")
+posibles_vecinos <- read_csv("business_case/posibles_vecinos_v2.csv")
 View(posibles_vecinos)
 
 
@@ -109,11 +109,11 @@ for(i in c(1:nrow(tiendas_fuera_diagonal))){
 }
 
 vecinos_mas_cercanos <- vecinos_mas_cercanos %>% filter(id != 0)
-#write.csv(vecinos_mas_cercanos, "vecinos_mas_cercanos_v3.csv", row.names = F)
+#write.csv(vecinos_mas_cercanos, "vecinos_mas_cercanos_v4.csv", row.names = F)
 
 # Paso 2: se calcula para cada tienda fuera de la diagonal, el promedio de la variable: "promedio por mes" para cada uno de sus vecinos
 # También se calcula el promedio de distancia a sus vecinos más cercanos
-vecinos_mas_cercanos <- read_csv("business_case/vecinos_mas_cercanos_v3.csv")
+vecinos_mas_cercanos <- read_csv("business_case/vecinos_mas_cercanos_v4.csv")
 View(vecinos_mas_cercanos)
 
 montos_promedio <- c()
@@ -163,7 +163,7 @@ recomendaciones$ganancia = recomendaciones$monto_promedio_vecinos - recomendacio
 
 sum(recomendaciones$ganancia)
 
-#write.csv(recomendaciones, "recomendaciones_v3.csv", row.names = F)
+#write.csv(recomendaciones, "recomendaciones_v4.csv", row.names = F)
 
 recomendaciones %>% merge(resultado_m1_m2, by.x = "id", by.y = "customer_id" ) %>% select(id, distancia_promedio, ganancia, cluster) %>% 
   group_by(cluster) %>% summarise("promedio_por_cluster" = mean(ganancia), cantidad = n()) %>% View()

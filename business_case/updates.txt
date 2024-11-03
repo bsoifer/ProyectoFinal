@@ -6,3 +6,13 @@ Cambios tiendas_caba_m1_v2:
 
 -Archivo eliminar_outliers
 	-Hay gráficos para agregar. Son los boxplots que muestran las distribuciones antes y después de la eliminación de outliers.
+
+
+-montos_ajustados_por_pedido
+	-Contiene el valor ajustado por inflación (columna adjusted_total) a valores de septiembre 2024
+
+-posibles_vecinos_v2
+	-Contiene los posibles vecinos con los montos promedios por mes (ajustados por inflación a sep-2024)
+
+-montos_promedio
+	-Contiene el id de cada tienda, y su monto promedio por mes (valores ajustados por inflación a sep-2024)
