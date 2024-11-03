@@ -1,0 +1,8 @@
+Cambios tiendas_caba_m1_v2:
+-Modifiqué la base tiendas caba_m1 en el archivo pca
+	-Le saqué la columna cluster. La reemplacé por los nuevos valores
+	-Le agregué una columna "dias_abierto" que representa la cantidad de días por semana que la tienda está abierta
+	-El script de PCA, cambié los colores de los gráficos con las primeras dos y tres componentes principales (gráficos para usar)
+
+-Archivo eliminar_outliers
+	-Hay gráficos para agregar. Son los boxplots que muestran las distribuciones antes y después de la eliminación de outliers.
