@@ -14,8 +14,6 @@ View(orders)
 tiendas_caba_m1 <- read_csv("bases_modelo/tiendas_caba_m1_v2.csv")
 View(tiendas_caba_m1)
 
-boxplot(montos_promedio$monto_promedio)
-
 #2. Se seleccionan las tiendas que son objeto de estudio
 orders <- orders %>% filter(customer_id %in% tiendas_caba_m1$id)
 
@@ -24,6 +22,7 @@ orders <- orders %>% filter(!is.na(created_at))
 monto_por_mes <- orders %>% group_by(customer_id, "month" = month(created_at), "year" = year(created_at)) %>% summarise(monto = sum(adjusted_total))
 
 montos_promedio <- monto_por_mes %>% group_by(customer_id) %>% summarise(monto_promedio = mean(monto))
+#write.csv(montos_promedio, "montos_promedio.csv", row.names = FALSE)
 
 ################################ Calculo decil inferior (estimacion BC)
 iqr <- quantile(montos_promedio$monto_promedio, 0.75) - quantile(montos_promedio$monto_promedio, 0.25)
