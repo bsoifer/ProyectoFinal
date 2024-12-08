@@ -78,7 +78,7 @@ tiendas %>%
   geom_col(fill = "skyblue") +
   labs(
     x = "Estaciones de Servicio en un radio de 1000 metros",
-    y = "Monto Promedio Promedio"
+    y = "Promedio del gasto mensual promedio"
   ) +
   theme_minimal()
 
@@ -87,7 +87,7 @@ tiendas %>%
   summarize(monto_promedio = mean(monto_promedio, na.rm = TRUE)) %>%
   ggplot(aes(x = factor(subtes_1000mts), y = 1, fill = monto_promedio)) + 
   geom_tile() +
-  scale_fill_gradient(low = "lightyellow", high = "red") +
+  scale_fill_gradient(low = "lightblue", high = "blue") +
   labs(
     x = "Estaciones de Subte en un radio de 1000 metros",
     y = "",
@@ -101,20 +101,46 @@ tiendas %>%
   ggplot(aes(x = porc_varones, y = porc_mujeres, size = monto_promedio, color = monto_promedio)) +
   geom_point(alpha = 0.7) +
   scale_size_continuous(range = c(2, 12)) +
-  scale_color_gradient(low = "lightgreen", high = "darkgreen") +
+  scale_color_gradient(low = "lightblue", high = "blue") +
   labs(
     x = "Porcentaje de Varones",
     y = "Porcentaje de Mujeres",
     size = "Monto Promedio",
     color = "Monto Promedio",
-    title = "Relación entre % de Varones, % de Mujeres y Monto Promedio",
-    subtitle = "El tamaño y color de las burbujas representan el monto promedio"
+    title = "Relación entre la distribución de género y el gasto mensual medio",
   ) +
   theme_minimal(base_size = 13) +
   theme(
     panel.grid.major = element_line(color = "grey90"),
     panel.grid.minor = element_blank(),
     legend.position = "right",
+    plot.title = element_text(face = "bold", size = 14),
+    plot.subtitle = element_text(size = 12)
+  )
+
+
+tiendas %>%
+  mutate(
+    rango_monto = cut(
+      monto_promedio,
+      breaks = c(0, 1000000, 2000000, 3000000, 4000000, Inf),
+      labels = c("0-1M", "1M-2M", "2M-3M", "3M-4M", "+4M"),
+      right = FALSE
+    )
+  ) %>%
+  ggplot(aes(x = porc_mujeres)) +
+  geom_histogram(binwidth = 0.02, alpha = 0.7, color = "white", fill = "lightblue") +
+  facet_wrap(~rango_monto, scales = "free_y") +
+  labs(
+    x = "Porcentaje de Mujeres",
+    y = "Frecuencia",
+    title = "Distribución del porcentaje de mujeres en el radio censal",
+    subtitle = "Dividido por rangos de monto promedio"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major = element_line(color = "grey90"),
+    panel.grid.minor = element_blank(),
     plot.title = element_text(face = "bold", size = 14),
     plot.subtitle = element_text(size = 12)
   )
@@ -133,8 +159,8 @@ tiendas %>%
   ggplot(aes(x = universidades_segmento, y = monto_promedio)) +
   geom_boxplot(fill = "lightblue") +
   labs(
-    x = "Número de Universidades Cercanas",
-    y = "Monto Promedio",
+    x = "Cantidad de Universidades Cercanas",
+    y = "Gasto mensual medio",
     title = "Distribución del Monto Promedio por Rangos de Universidades Cercanas",
     subtitle = "Universidades en un radio de 1000 mts"
   ) +
@@ -147,23 +173,30 @@ tiendas %>%
   )
 
 
-
-tiendas %>%
+tiendas <- tiendas %>%
+  group_by(grupos_escuelas = cut(
+    escuelas_cercanas_1000m,
+    breaks = c(-Inf, 0, 25, 50, 75, 100, Inf),
+    labels = c("0", "0-25", "25-50", "50-75", "75-100", ">100"),
+    right = FALSE
+  )) %>%
   mutate(
-    grupos_escuelas = cut(
-      escuelas_cercanas_1000m,
-      breaks = c(-Inf, 0, 25, 50, 75, 100, Inf),
-      labels = c("0", "0-25", "25-50", "50-75", "75-100", ">100"),
-      right = FALSE
-    )
+    Q1 = quantile(monto_promedio, 0.25, na.rm = TRUE),
+    Q3 = quantile(monto_promedio, 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1,
+    outlier_status = ifelse(monto_promedio < (Q1 - 1.5 * IQR) | monto_promedio > (Q3 + 1.5 * IQR), "Outlier", "No es outlier")
   ) %>%
-  ggplot(aes(x = grupos_escuelas, y = monto_promedio)) +
-  geom_point(alpha = 0.6, position = position_jitter(width = 0.2), color = "dodgerblue") +
+  ungroup()
+
+# Crear el gráfico con la leyenda de outliers
+ggplot(tiendas, aes(x = grupos_escuelas, y = monto_promedio)) +
+  geom_point(aes(color = outlier_status), alpha = 0.6, position = position_jitter(width = 0.2)) +
+  scale_color_manual(values = c("No es outlier" = "deepskyblue", "Outlier" = "purple")) +
   labs(
-    x = "Número de Escuelas Cercanas (1000 m)",
-    y = "Monto Promedio",
-    title = "Relación entre el Número de Escuelas Cercanas y el Monto Promedio",
-    subtitle = "Dispersión de tiendas según el número de escuelas cercanas"
+    x = "Cantidad de Escuelas Cercanas (1000 m)",
+    y = "Gasto mensual medio",
+    title = "Relación entre el Número de Escuelas Cercanas y el gasto mensual medio",
+    color = "Estado de outlier"
   ) +
   theme_minimal(base_size = 13) +
   theme(
@@ -172,6 +205,3 @@ tiendas %>%
     panel.grid.major = element_line(color = "grey90"),
     panel.grid.minor = element_blank()
   )
-
-
-

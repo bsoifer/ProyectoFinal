@@ -107,8 +107,7 @@ plot_2d <- plot_ly(pca_plot_data,
 plot_3d <- plot_ly(pca_plot_data, 
                    x = ~PC1, y = ~PC2, z = ~PC3, 
                    color = ~cluster, colors = c('orange', "blue", 'purple'),
-                   text = ~paste('ID:', id, 
-                                 '<br>Cluster:', cluster),
+                   text = ~paste('ID:', id),  # Solo incluye ID en el hover
                    type = 'scatter3d', mode = 'markers',
                    marker = list(size = 5, opacity = 0.8)) %>%
   layout(title = list(text = 'Resultados PCA - Primeras tres componentes', 
@@ -140,7 +139,7 @@ pca_plot_data$mismatch = case_when(
 
 # 2) Definir colores: 
 # Cluster 0 -> orange, Cluster 1 -> blue, Cluster 2 -> purple, Mismatch -> red
-colors <- ifelse(pca_plot_data$mismatch, '', 
+colors <- ifelse(pca_plot_data$mismatch, 'grey', 
                  ifelse(pca_plot_data$cluster == 0, 'orange',
                         ifelse(pca_plot_data$cluster == 1, 'blue', 'purple')))
 
@@ -168,3 +167,5 @@ plot_3d.2 <- plot_ly(pca_plot_data,
 # Mostrar ambos gráficos
 plot_2d.2
 plot_3d.2
+
+
